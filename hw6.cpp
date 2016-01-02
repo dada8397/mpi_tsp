@@ -8,7 +8,7 @@
 using namespace std;
 
 int map[100][100];
-char* filename;
+char filename[512];
 int city_count;
 int population;
 int generations;
@@ -22,10 +22,8 @@ int main(int argc, char const *argv[]) {
     FILE *conf;
     conf = fopen("config.conf", "r");
     if(conf != NULL){
-        fscanf(conf, "%s", filename);     // 城市相鄰矩陣檔案名稱
-        printf("%s\n", filename);
+        fscanf(conf, "%s", filename);       // 城市相鄰矩陣檔案名稱
         fscanf(conf, "%d", &city_count);    // 城市數
-        printf("%d\n", city_count);
         fscanf(conf, "%d", &population);    // 人口數
         fscanf(conf, "%d", &generations);   // 世代數
         fscanf(conf, "%f", &crossover);     // 交配機率
