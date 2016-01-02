@@ -7,6 +7,11 @@
 using namespace std;
 
 int main(int argc, char const *argv[]) {
-  /* code */
-  return 0;
+    /* code */
+    return 0;
+}
+
+void readFile(string filename){
+    FILE *fptr;
+
 }
