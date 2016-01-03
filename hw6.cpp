@@ -5,6 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <ctime>
 using namespace std;
 
 //Parameters
@@ -12,6 +13,11 @@ int map[100][100];
 vector< vector<int> > gene, gene_child;
 vector<int> temp, cost, cost_child;
 vector<double> fitness, fitness_child;
+
+//Const functions
+int myrandom(int i) {
+    return rand()%i;
+}
 
 //Functions
 void readFile(char*, int);
@@ -46,6 +52,7 @@ int main(int argc, char const *argv[]) {
     //Initialize
     readFile(filename, city_count);
     firstGeneration(city_count, population);
+    //for(int i=0; i<cost.size(); i++) printf("Cost: %d, fitness: %lf\n", cost[i], fitness[i]);
     for(int i=0; i<generations; i++){
 
     }
@@ -73,12 +80,12 @@ void firstGeneration(int _city_count, int _population) {
     for(int i=0; i<_population; i++){
         random_shuffle(randomnum.begin(), randomnum.end());
         for(int j=0; j<_city_count; j++)
-            temp.push_back(randomnum[i]);
-        //Calculate cost
+            temp.push_back(randomnum[j]);
         int cost_sum = 0;
         for(int j=0; j<_city_count-1; j++)
-            cost_sum += map[j][j+1];
+            cost_sum += map[randomnum[j]][randomnum[j+1]];
         cost.push_back(cost_sum);
         fitness.push_back((double)1/(double)cost_sum);
+        gene.push_back(temp);
     }
 }
