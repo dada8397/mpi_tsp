@@ -216,6 +216,14 @@ void crossover(){
 void mutation(){
     double ran = rand() / RAND_MAX;
     if(ran >= mutation_p){
-
+        int index1, index2, tmp;
+        index1 = rand() % cities;
+        index2 = rand() % cities;
+        tmp = child1[index1];
+        child1[index1] = child1[index2];
+        child1[index2] = tmp;
+        tmp = child2[index1];
+        child2[index1] = child2[index2];
+        child2[index2] = tmp;
     }
 }
