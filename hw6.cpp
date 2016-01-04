@@ -13,6 +13,7 @@ int map[100][100];
 vector< vector<int> > gene, gene_child;
 vector<int> temp, cost, cost_child;
 vector<double> fitness, fitness_child;
+vector<double> posibility;
 int elite1, elite2;
 
 //Functions
@@ -20,7 +21,8 @@ void readFile(char*, int);
 void firstGeneration(int, int);
 void findElite();
 bool sameCost(int);
-
+void calculatePosibility();
+int whellSelection();
 
 //Main function
 int main(int argc, char const *argv[]) {
@@ -52,6 +54,7 @@ int main(int argc, char const *argv[]) {
     readFile(filename, cities);
     firstGeneration(cities, population);
     findElite();
+    calculatePosibility();
     //for(int i=0; i<cost.size(); i++) printf("Cost: %d, fitness: %lf\n", cost[i], fitness[i]);
     for(int i=0; i<generations; i++){
 
@@ -107,9 +110,39 @@ void findElite(){
 
 //Cost the same
 bool sameCost(int _cost){
-    for(int i=0; i<cost.size(); i++){
+    for(int i=0; i<cost.size(); i++)
         if(_cost == cost[i])
             return true;
-    }
     return false;
+}
+
+//Calculate posibility
+void calculatePosibility(){
+    posibility.clear();
+    double fitness_sum = 0.0;
+    for(int i=0; i<fitness.size(); i++)
+        fitness_sum += fitness[i];
+    for(int i=0; i<fitness.size(); i++)
+        posibility.push_back(fitness[i] / fitness_sum);
+}
+
+//Roulette Wheel Selection
+int whellSelection(){
+    srand(time(NULL));
+    double ran = rand() / RAND_MAX;
+    for(int i=0; i<posibility.size(); i++){
+        if(ran < 0) return i;
+        else
+            ran -= posibility[i];
+    }
+    return i;
+}
+
+void crossover(){
+    int dad = whellSelection();
+    int mom = whellSelection();
+    while(dad == mom)
+        mom = whellSelection();
+
+    
 }
