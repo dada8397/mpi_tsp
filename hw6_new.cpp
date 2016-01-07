@@ -108,6 +108,7 @@ int main(int argc, char *argv[]) {
         for(int i=1; i<comm_sz; i++){
             int temp_cost;
             MPI_Recv(&temp_cost, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            printf("Rank %d cost %d\n", i, temp_cost);
             if(temp_cost < cost[elite1])
                 cost[elite1] = temp_cost;
         }

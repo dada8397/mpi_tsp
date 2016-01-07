@@ -12,8 +12,8 @@ using namespace std;
 //Parameters
 int map[100][100];
 vector< vector<int> > gene, gene_child;
-vector<int> cost, cost_child, child1, child2;
-vector<double> fitness, fitness_child;
+vector<int> cost, child1, child2;
+vector<double> fitness;
 vector<double> posibility;
 int elite1, elite2;
 int my_rank, comm_sz;
@@ -38,6 +38,7 @@ void crossover();
 vector<int> CrossoverTour(vector<int> a, vector<int> b);
 void mutation();
 void immigrate();
+void calculateCost();
 
 
 //Main function
@@ -64,16 +65,27 @@ int main(int argc, char *argv[]) {
     }
 
     //Initialize
+    cost.resize(population);
+    fitness.resize(population);
+    posibility.resize(population);
+    printf("Start.\n");
     readFile();
+    printf("readFile.\n");
     firstGeneration();
+    printf("firstGeneration.\n");
+    calculateCost();
+    printf("calculateCost.\n");
     findElite();
+    printf("findElite.\n");
     calculatePosibility();
+    printf("calculatePosibility.\n");
 
     srand(time(NULL) + my_rank);
 
     //Crossover, Mutation
     int i, j;
     for(j=0; j<generations; j++){
+        printf("Rank %d gen %d\n", my_rank, j);
         for(i=0; i<(population - immigration)/2-1; i++){
             child1.clear();
             child2.clear();
@@ -82,32 +94,29 @@ int main(int argc, char *argv[]) {
         }
         gene_child.push_back(gene[elite1]);
         gene_child.push_back(gene[elite2]);
-        cost_child.push_back(cost[elite1]);
-        cost_child.push_back(cost[elite2]);
-        fitness_child.push_back(fitness[elite1]);
-        fitness_child.push_back(fitness[elite2]);
 
         gene = gene_child;
-        cost = cost_child;
-        fitness = fitness_child;
 
         gene_child.clear();
-        cost_child.clear();
-        fitness_child.clear();
-        calculatePosibility();
 
         for(i=0; i<immigration; i++){
             immigrate();
         }
+            printf("Finish immigrate.\n");
 
+        calculateCost();
+        printf("calculateCost Finish.\n");
+        calculatePosibility();
         findElite();
     }
 
+    printf("Finish.\n");
     //Print elite
     if(my_rank == 0){
         for(int i=1; i<comm_sz; i++){
             int temp_cost;
             MPI_Recv(&temp_cost, 1, MPI_INT, i, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            printf("Rank %d cost %d\n", i, temp_cost);
             if(temp_cost < cost[elite1])
                 cost[elite1] = temp_cost;
         }
@@ -139,12 +148,6 @@ void firstGeneration() {
     for(int i=0; i<population; i++){
         random_shuffle(randomnum.begin(), randomnum.end());
         gene.push_back(randomnum);
-        int cost_sum = 0;
-        for(int j=0; j<cities-1; j++)
-            cost_sum += map[randomnum[j]][randomnum[j+1]];
-        cost_sum += map[randomnum[0]][randomnum[cities-1]];
-        cost.push_back(cost_sum);
-        fitness.push_back((double)1/(double)cost_sum);
     }
 }
 
@@ -172,12 +175,11 @@ void findElite(){
 
 //Calculate posibility
 void calculatePosibility(){
-    posibility.clear();
     double fitness_sum = 0.0;
     for(int i=0; i<fitness.size(); i++)
         fitness_sum += fitness[i];
     for(int i=0; i<fitness.size(); i++)
-        posibility.push_back(fitness[i] / fitness_sum);
+        posibility[i] = fitness[i] / fitness_sum;
 }
 
 //Roulette Wheel Selection
@@ -219,22 +221,6 @@ void crossover(){
         child1 = gene[dad];
         child2 = gene[mom];
     }
-
-    //Calculate cost
-    int cost_sum = 0;
-
-    for(int j=0; j<cities-1; j++)
-        cost_sum += map[child1[j]][child1[j+1]];
-    cost_sum += map[child1[0]][child1[cities-1]];
-    cost_child.push_back(cost_sum);
-    fitness_child.push_back((double)1/(double)cost_sum);
-
-    cost_sum = 0;
-    for(int j=0; j<cities-1; j++)
-        cost_sum += map[child2[j]][child2[j+1]];
-    cost_sum += map[child2[0]][child2[cities-1]];
-    cost_child.push_back(cost_sum);
-    fitness_child.push_back((double)1/(double)cost_sum);
 
     gene_child.push_back(child1);
     gene_child.push_back(child2);
@@ -305,10 +291,17 @@ void immigrate(){
     MPI_Barrier(MPI_COMM_WORLD);
 
     gene_child.push_back(recv);
-    int cost_sum = 0;
-    for(int j=0; j<cities-1; j++)
-        cost_sum += map[recv[j]][recv[j+1]];
-    cost_sum += map[recv[0]][recv[cities-1]];
-    cost_child.push_back(cost_sum);
-    fitness_child.push_back((double)1/(double)cost_sum);
+}
+
+//Calculate Cost
+void calculateCost(){
+    for(int i=0; i<population; i++){
+        int cost_sum = 0;
+        double fitness_sum = 0.0;
+        for(int j=0; j<cities; j++){
+            cost_sum += map[gene[i][j]][gene[i][(j+1)%cities]];
+        }
+        cost[i] = cost_sum;
+        fitness[i] = (double)1.0 / cost_sum;
+    }
 }
